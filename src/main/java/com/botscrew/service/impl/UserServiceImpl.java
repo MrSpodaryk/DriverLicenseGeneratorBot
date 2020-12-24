@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService, UserProvider {
-    private static final String MALE = "male";
-    private static final String FEMALE = "female";
 
     @Autowired
     private UserDao userDao;
@@ -24,8 +22,15 @@ public class UserServiceImpl implements UserService, UserProvider {
 
     @Override
     public User createIfNotExist(Long chatId) {
+        System.out.println("!!!!!!!!!!!!!!!!!!! createIfNotExist");
+        System.out.println("!!!!!!!!!!!!!!!!!!! chatId === " + chatId);
+
         User user = userDao.findByChatId(chatId);
+        System.out.println("!!!!!!!!!!!!!!!!!!! userDao === " + userDao);
+        System.out.println("!!!!!!!!!!!!!!!!!!! user === " + user.toString());
+
         if (user == null) {
+            System.out.println("!!!!!!!!!!!!!!!!!!! new user created");
             user = new User();
             user.setChatId(chatId);
             Profile profileInfo = messenger.getProfile(chatId);
@@ -40,22 +45,28 @@ public class UserServiceImpl implements UserService, UserProvider {
 
     @Override
     public void changeState(User user, String chatState) {
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!! change state");
         user.setState(chatState);
         userDao.save(user);
     }
 
     @Override
     public User findByChatId(Long userChatId) {
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!! findByChatId");
+
         return userDao.findByChatId(userChatId);
     }
 
     @Override
     public void save(User user) {
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!! save");
+
         userDao.save(user);
     }
 
     @Override
     public Boolean checkState(User user, String message) {
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!! checkState");
         return message.equalsIgnoreCase("stop");
     }
 

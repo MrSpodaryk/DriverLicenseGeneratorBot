@@ -21,11 +21,10 @@ USE `Bot`;
 CREATE TABLE IF NOT EXISTS `Bot`.`user`
 (
     `id`         INT         NOT NULL AUTO_INCREMENT,
-    `chat_id`    INT         NOT NULL,
+    `chat_id`    LONG        NOT NULL,
     `state`      VARCHAR(45) NOT NULL,
     `first_name` VARCHAR(45) NOT NULL,
     `last_name`  VARCHAR(45) NOT NULL,
-    `email`      VARCHAR(45) NOT NULL,
     PRIMARY KEY (`id`)
 )
     ENGINE = InnoDB;

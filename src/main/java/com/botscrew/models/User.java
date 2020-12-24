@@ -4,6 +4,7 @@ package com.botscrew.models;
 import com.botscrew.messengercdk.model.MessengerUser;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -11,7 +12,7 @@ import java.util.Set;
 public class User implements MessengerUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
     @Column(name = "chat_id")
@@ -29,8 +30,8 @@ public class User implements MessengerUser {
     @Column(name = "email")
     private String email;
 
-    @OneToMany(mappedBy = "user")
-    private Set<DriverLicenseTemplate> driverLicenseTemplateList;
+    @OneToMany(mappedBy = "user", fetch=FetchType.EAGER)
+    private Set<DriverLicenseTemplate> driverLicenseTemplateList = new HashSet<>();
 
     public Integer getId() {
         return id;
@@ -82,11 +83,14 @@ public class User implements MessengerUser {
 
     @Override
     public Long getChatId() {
-        return 3863777143635265L;
+        System.out.println("???????????????????????  getChatId == " + chatId);
+
+        return chatId;
     }
 
     @Override
     public String getState() {
+        System.out.println("???????????????????????  getState == " + state);
         return state;
     }
 
