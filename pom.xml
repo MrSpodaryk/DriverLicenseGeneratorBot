@@ -19,7 +19,6 @@
 	</properties>
 
 	<dependencies>
-
 		<!-- https://mvnrepository.com/artifact/com.botscrew/bot-framework-core-spring-boot-starter -->
 		<dependency>
 			<groupId>com.botscrew</groupId>
