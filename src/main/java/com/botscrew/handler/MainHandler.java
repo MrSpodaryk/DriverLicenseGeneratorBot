@@ -16,8 +16,6 @@ import com.botscrew.service.DriverLicenseTemplateService;
 import com.botscrew.service.GenderService;
 import com.botscrew.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -91,7 +89,7 @@ public class MainHandler {
 
     @Postback(value = ButtonPostback.GENDER)
     public void handleGender(User user, @Param("gender") String gender) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         if (gender.equals("male")) {
             driverLicenseTemplate.setGender(genderService.getGenderById(GenderId.MALE));
@@ -116,7 +114,7 @@ public class MainHandler {
 
     @Postback(ButtonPostback.FACEBOOK_NAME)
     public void handleFacebookName(User user, @Param("use") String use) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         if (Boolean.parseBoolean(use)) {
             driverLicenseTemplate.setFirstName(messenger.getProfile(user.getChatId()).getFirstName());
@@ -136,10 +134,11 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_NAME)
     public void handleEnterName(User user, @Text String name) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         if (!name.isEmpty()) {
             driverLicenseTemplate.setFirstName(name);
+            driverLicenseTemplateService.save(driverLicenseTemplate);
             sender.send(SenderAction.typingOn(user));
             sender.send(user, "And now enter your surname", 1000);
             userService.changeState(user, ChatState.ENTER_SURNAME);
@@ -152,10 +151,11 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_SURNAME)
     public void handleEnterSurname(User user, @Text String surname) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         if (!surname.isEmpty()) {
             driverLicenseTemplate.setLastName(surname);
+            driverLicenseTemplateService.save(driverLicenseTemplate);
             sender.send(SenderAction.typingOn(user));
             sender.send(user, "Please, enter your date of birth in dd/mm/yyyy format, for example: 04/05/1988", 2000);
             userService.changeState(user, ChatState.ENTER_DATE_OF_BIRTH);
@@ -168,7 +168,7 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_DATE_OF_BIRTH)
     public void handleEnterDateOfBirth(User user, @Text String date) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         Predicate<String> dateTester = d -> {
             Pattern pattern = Pattern.compile("^(3[01]|[12][0-9]|0[1-9])/(1[0-2]|0[1-9])/[0-9]{4}$");
@@ -191,7 +191,7 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_ALL_CATEGORY)
     public void handleEnterAllCategory(User user, @Text String listOfCategory) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         if (!listOfCategory.isEmpty()) {
             Set<String> allCategories = new HashSet<>(Arrays.asList(listOfCategory.split("[,\\s]")));
@@ -214,7 +214,7 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_EMAIL)
     public void handleUseFacebookEmail(User user, @Text String email) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateByUserId(user.getUnfinishedTemplateId());
+        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
 
         Predicate<String> emailTester = d -> {
             Pattern pattern = Pattern.compile("^[a-zA-Z0-9_!#$%&’*+\\=?`{|}~^.-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,6}$");
@@ -231,7 +231,7 @@ public class MainHandler {
             sender.send(QuickReplies.builder()
                             .user(user)
                             .text("Thank you, now you can see your driver license template")
-                            .postback("Yes", ButtonPostback.SEE_TEMPLATE)
+                            .postback("See Templates", ButtonPostback.SEE_TEMPLATE)
                             .build(),
                     1000);
         } else {
@@ -242,20 +242,16 @@ public class MainHandler {
     }
 
     @Postback(value = ButtonPostback.SEE_TEMPLATE)
-    private void handleSeeTemplate(User user) {
-        ModelAndView model = new ModelAndView();
-        model.addObject("user", user);
-        sender.send(user, "template.html", 2000);
-
+    public void handleSeeTemplate(User user) {
+        userService.changeState(user, ChatState.WELCOME);
+        sender.send(user, "http://localhost:8080/template/"+user.getId());
     }
 
     @Read
     public void handleRead(User user) {
-        System.out.println("-----------READ == " + user.toString());
     }
 
     @Echo
     public void handleEcho(User user) {
-        System.out.println("-----------ECHO == " + user.toString());
     }
 }

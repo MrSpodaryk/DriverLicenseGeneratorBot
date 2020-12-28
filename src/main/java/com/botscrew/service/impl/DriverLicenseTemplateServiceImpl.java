@@ -18,7 +18,7 @@ public class DriverLicenseTemplateServiceImpl implements DriverLicenseTemplateSe
     }
 
     @Override
-    public DriverLicenseTemplate getTemplateByUserId(Integer id) {
+    public DriverLicenseTemplate getTemplateById(Integer id) {
         if (driverLicenseTemplateDao.findById(id).isPresent()){
             return driverLicenseTemplateDao.findById(id).get();
         } else {

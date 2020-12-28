@@ -16,7 +16,6 @@ public class GenderServiceImpl implements GenderService {
 
     @Override
     public Gender getGenderById(Integer id) {
-        System.out.println("!!!!!!!!!! gender id === " + id);
         if (genderDao.findById(id).isPresent()) {
             return genderDao.findById(id).get();
         } else {
