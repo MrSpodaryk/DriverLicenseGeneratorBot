@@ -13,4 +13,6 @@ public interface UserService {
     User findByChatId(Long userChatId);
 
     void save(User user);
+
+    User findUserById(Integer userId);
 }

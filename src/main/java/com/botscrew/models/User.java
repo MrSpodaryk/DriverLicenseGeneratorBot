@@ -27,8 +27,8 @@ public class User implements MessengerUser {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "unfinished_template_id")
+    private Integer unfinishedTemplateId;
 
     @OneToMany(mappedBy = "user", fetch=FetchType.EAGER)
     private Set<DriverLicenseTemplate> driverLicenseTemplateList = new HashSet<>();
@@ -65,14 +65,6 @@ public class User implements MessengerUser {
         this.lastName = lastName;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public Set<DriverLicenseTemplate> getDriverLicenseTemplateList() {
         return driverLicenseTemplateList;
     }
@@ -81,16 +73,21 @@ public class User implements MessengerUser {
         this.driverLicenseTemplateList = driverLicenseTemplateList;
     }
 
+    public Integer getUnfinishedTemplateId() {
+        return unfinishedTemplateId;
+    }
+
+    public void setUnfinishedTemplateId(Integer unfinishedTemplateId) {
+        this.unfinishedTemplateId = unfinishedTemplateId;
+    }
+
     @Override
     public Long getChatId() {
-        System.out.println("???????????????????????  getChatId == " + chatId);
-
         return chatId;
     }
 
     @Override
     public String getState() {
-        System.out.println("???????????????????????  getState == " + state);
         return state;
     }
 
@@ -102,7 +99,7 @@ public class User implements MessengerUser {
                 ", state='" + state + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
+                ", unfinishedTemplateId=" + unfinishedTemplateId +
                 ", driverLicenseTemplateList=" + driverLicenseTemplateList +
                 '}';
     }

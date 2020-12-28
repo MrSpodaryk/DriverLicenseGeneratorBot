@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
   jpa:
     # Show or not log for each sql query
-    show-sql: true
+    show-sql: false
     hibernate:
       # Hibernate ddl auto (validate, create, create-drop, update)
       ddl-auto: update

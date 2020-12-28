@@ -48,7 +48,6 @@ public class Gender {
 		return "Gender{" +
 				"id=" + id +
 				", gender='" + gender + '\'' +
-				", driverLicenseTemplateList=" + driverLicenseTemplateList +
 				'}';
 	}
 }

@@ -11,6 +11,8 @@ import com.botscrew.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
+
 @Service
 public class UserServiceImpl implements UserService, UserProvider {
 
@@ -22,15 +24,8 @@ public class UserServiceImpl implements UserService, UserProvider {
 
     @Override
     public User createIfNotExist(Long chatId) {
-        System.out.println("!!!!!!!!!!!!!!!!!!! createIfNotExist");
-        System.out.println("!!!!!!!!!!!!!!!!!!! chatId === " + chatId);
-
         User user = userDao.findByChatId(chatId);
-        System.out.println("!!!!!!!!!!!!!!!!!!! userDao === " + userDao);
-        System.out.println("!!!!!!!!!!!!!!!!!!! user === " + user.toString());
-
         if (user == null) {
-            System.out.println("!!!!!!!!!!!!!!!!!!! new user created");
             user = new User();
             user.setChatId(chatId);
             Profile profileInfo = messenger.getProfile(chatId);
@@ -45,28 +40,32 @@ public class UserServiceImpl implements UserService, UserProvider {
 
     @Override
     public void changeState(User user, String chatState) {
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!! change state");
         user.setState(chatState);
         userDao.save(user);
     }
 
     @Override
     public User findByChatId(Long userChatId) {
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!! findByChatId");
-
         return userDao.findByChatId(userChatId);
     }
 
     @Override
     public void save(User user) {
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!! save");
-
         userDao.save(user);
     }
 
     @Override
+    public User findUserById(Integer userId) {
+        if (userDao.findById(userId).isPresent()) {
+            return userDao.findById(userId).get();
+        } else {
+            throw new NoSuchElementException();
+        }
+
+    }
+
+    @Override
     public Boolean checkState(User user, String message) {
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!! checkState");
         return message.equalsIgnoreCase("stop");
     }
 

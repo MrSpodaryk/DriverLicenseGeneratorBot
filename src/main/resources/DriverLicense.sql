@@ -20,11 +20,12 @@ USE `Bot`;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Bot`.`user`
 (
-    `id`         INT         NOT NULL AUTO_INCREMENT,
-    `chat_id`    LONG        NOT NULL,
-    `state`      VARCHAR(45) NOT NULL,
-    `first_name` VARCHAR(45) NOT NULL,
-    `last_name`  VARCHAR(45) NOT NULL,
+    `id`                     INT          NOT NULL AUTO_INCREMENT,
+    `chat_id`                LONG         NOT NULL,
+    `state`                  VARCHAR(45)  NOT NULL,
+    `first_name`             VARCHAR(45)  NOT NULL,
+    `last_name`              VARCHAR(45)  NOT NULL,
+    `unfinished_template_id` INT,
     PRIMARY KEY (`id`)
 )
     ENGINE = InnoDB;
@@ -33,25 +34,25 @@ CREATE TABLE IF NOT EXISTS `Bot`.`user`
 -- -----------------------------------------------------
 -- Table `Bot`.`driver_category`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `Bot`.`driver_category`
-(
-    `id`       INT         NOT NULL AUTO_INCREMENT,
-    `category` VARCHAR(45) NOT NULL,
-    PRIMARY KEY (`id`)
-)
-    ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `Bot`.`gender`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `Bot`.`gender`
-(
-    `id`     INT         NOT NULL AUTO_INCREMENT,
-    `gender` VARCHAR(45) NOT NULL,
-    PRIMARY KEY (`id`)
-)
-    ENGINE = InnoDB;
+# CREATE TABLE IF NOT EXISTS `Bot`.`driver_category`
+# (
+#     `id`       INT         NOT NULL AUTO_INCREMENT,
+#     `category` VARCHAR(45) NOT NULL,
+#     PRIMARY KEY (`id`)
+# )
+#     ENGINE = InnoDB;
+#
+#
+# -- -----------------------------------------------------
+# -- Table `Bot`.`gender`
+# -- -----------------------------------------------------
+# CREATE TABLE IF NOT EXISTS `Bot`.`gender`
+# (
+#     `id`     INT         NOT NULL AUTO_INCREMENT,
+#     `gender` VARCHAR(45) NOT NULL,
+#     PRIMARY KEY (`id`)
+# )
+#     ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -63,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `Bot`.`driver_license_template`
     `Uid`           VARCHAR(45)  NULL,
     `first_name`    VARCHAR(45)  NULL,
     `last_name`     VARCHAR(45)  NULL,
-    `date_time`     VARCHAR(45)  NULL,
+    `timestamp`     TIMESTAMP    NULL,
     `date_of_birth` VARCHAR(45)  NULL,
     `email`         VARCHAR(45)  NULL,
     `is_finished`   TINYINT      NULL,

@@ -2,6 +2,7 @@ package com.botscrew.models;
 
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,8 +28,8 @@ public class DriverLicenseTemplate {
     private String lastName;
 
     @Basic
-    @Column(name = "date_time")
-    private String dateTime;
+    @Column(name = "timestamp")
+    private Timestamp timestamp;
 
     @Basic
     @Column(name = "date_of_birth")
@@ -54,7 +55,7 @@ public class DriverLicenseTemplate {
     @JoinColumn(name="user_id")
     private User user;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "driver_license_template_driver_category",
             joinColumns = @JoinColumn(name = "driver_license_template_id", referencedColumnName = "id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "driver_category_id", referencedColumnName = "id", nullable = false))
@@ -100,12 +101,12 @@ public class DriverLicenseTemplate {
         this.gender = gender;
     }
 
-    public String getDateTime() {
-        return dateTime;
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 
-    public void setDateTime(String dateTime) {
-        this.dateTime = dateTime;
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getDateOfBirth() {
@@ -164,12 +165,12 @@ public class DriverLicenseTemplate {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", gender=" + gender +
-                ", dateTime='" + dateTime + '\'' +
+                ", timestamp='" + timestamp + '\'' +
                 ", dateOfBirth='" + dateOfBirth + '\'' +
                 ", email='" + email + '\'' +
                 ", isFinished=" + isFinished +
                 ", imgUrl='" + imgUrl + '\'' +
-                ", user=" + user +
+//                ", user=" + user +
                 ", driverCategoryList=" + driverCategoryList +
                 '}';
     }
