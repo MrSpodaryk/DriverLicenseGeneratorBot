@@ -13,7 +13,7 @@ public class MainController {
 
     private final DriverLicenseService driverLicenseService;
 
-    @GetMapping("driver-license-generator-bot.herokuapp.com/driver-license/{id}")
+    @GetMapping("/driver-license/{id}")
     public String getTemplate(@PathVariable Integer id, Model model) {
         model.addAttribute("license", driverLicenseService.getDriverLicenseById(id));
         return "template";
