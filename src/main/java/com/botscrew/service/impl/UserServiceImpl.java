@@ -8,19 +8,15 @@ import com.botscrew.messengercdk.service.Messenger;
 import com.botscrew.messengercdk.service.UserProvider;
 import com.botscrew.models.User;
 import com.botscrew.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
-
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserProvider {
 
-    @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private Messenger messenger;
+    private final UserDao userDao;
+    private final Messenger messenger;
 
     @Override
     public User createIfNotExist(Long chatId) {
@@ -52,16 +48,6 @@ public class UserServiceImpl implements UserService, UserProvider {
     @Override
     public void save(User user) {
         userDao.save(user);
-    }
-
-    @Override
-    public User findUserById(Integer userId) {
-        if (userDao.findById(userId).isPresent()) {
-            return userDao.findById(userId).get();
-        } else {
-            throw new NoSuchElementException();
-        }
-
     }
 
     @Override

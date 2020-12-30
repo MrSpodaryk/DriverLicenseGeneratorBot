@@ -1,56 +1,44 @@
 package com.botscrew.handler;
 
-import com.botscrew.botframework.annotation.*;
+import com.botscrew.botframework.annotation.ChatEventsProcessor;
+import com.botscrew.botframework.annotation.Param;
+import com.botscrew.botframework.annotation.Postback;
+import com.botscrew.botframework.annotation.Text;
 import com.botscrew.constant.ButtonPostback;
 import com.botscrew.constant.ChatState;
-import com.botscrew.constant.GenderId;
+import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
 import com.botscrew.messengercdk.model.outgoing.builder.SenderAction;
+import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
+import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
+import com.botscrew.messengercdk.model.outgoing.element.button.WebButton;
 import com.botscrew.messengercdk.service.Messenger;
 import com.botscrew.messengercdk.service.Sender;
 import com.botscrew.models.DriverCategory;
-import com.botscrew.models.DriverLicenseTemplate;
+import com.botscrew.models.DriverLicense;
+import com.botscrew.models.Gender;
 import com.botscrew.models.User;
-import com.botscrew.service.DriverCategoryService;
-import com.botscrew.service.DriverLicenseTemplateService;
-import com.botscrew.service.GenderService;
+import com.botscrew.service.DriverLicenseService;
 import com.botscrew.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @ChatEventsProcessor
+@RequiredArgsConstructor
 public class MainHandler {
 
-    @Autowired
-    Sender sender;
-
-    @Autowired
-    Messenger messenger;
-
-    @Autowired
-    UserService userService;
-
-    @Autowired
-    DriverLicenseTemplateService driverLicenseTemplateService;
-
-    @Autowired
-    GenderService genderService;
-
-    @Autowired
-    DriverCategoryService driverCategoryService;
-
-    private DriverLicenseTemplate driverLicenseTemplate;
-
+    private final Sender sender;
+    private final Messenger messenger;
+    private final UserService userService;
+    private final DriverLicenseService driverLicenseService;
+    private DriverLicense driverLicense;
 
     @Text(states = ChatState.WELCOME)
     public void handleWelcome(User user) {
@@ -58,25 +46,43 @@ public class MainHandler {
         String greeting = "Hi " + name + "!";
         sender.send(SenderAction.typingOn(user));
         sender.send(user, greeting, 1000);
-        user.setUnfinishedTemplateId(0);
         userService.save(user);
-        userService.changeState(user, "default");
-        handleText(user);
+        if (user.getUnfinishedDriverLicenseId() != null && driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId()) != null) {
+            handleUser(user);
+        } else {
+            handleNewUser(user);
+        }
     }
 
-    @Text
-    public void handleText(User user) {
-        sender.send(SenderAction.typingOn(user), 2000);
+    public void handleUser(User user) {
+        sender.send(SenderAction.typingOn(user), 1000);
         sender.send(QuickReplies.builder()
                         .user(user)
                         .text("I am your personal assistant for building driver licence template")
-                        .postback("Build new template", ButtonPostback.START_NEW_TEMPLATE_BUILDING)
+                        .postback("Build new driver license", ButtonPostback.START_NEW_DRIVER_LICENSE_BUILDING)
+                        .postback("See my driver licenses", ButtonPostback.SEE_ALL_DRIVER_LICENSES)
                         .build(),
-                6000);
+                3000);
     }
 
-    @Postback(value = ButtonPostback.START_NEW_TEMPLATE_BUILDING)
-    public void handleStartBuildingTemplate(User user) {
+    public void handleNewUser(User user) {
+        sender.send(SenderAction.typingOn(user), 1000);
+        sender.send(QuickReplies.builder()
+                        .user(user)
+                        .text("I am your personal assistant for building driver licence template")
+                        .postback("Build new driver license", ButtonPostback.START_NEW_DRIVER_LICENSE_BUILDING)
+                        .build(),
+                3000);
+    }
+
+    @Postback(value = ButtonPostback.START_NEW_DRIVER_LICENSE_BUILDING)
+    public void handleStartBuildingDriverLicense(User user) {
+        driverLicense = new DriverLicense();
+        driverLicense.setUser(user);
+        driverLicenseService.save(driverLicense);
+        user.setUnfinishedDriverLicenseId(driverLicense.getId());
+        userService.save(user);
+
         sender.send(SenderAction.typingOn(user));
         sender.send(QuickReplies.builder()
                         .user(user)
@@ -89,38 +95,35 @@ public class MainHandler {
 
     @Postback(value = ButtonPostback.GENDER)
     public void handleGender(User user, @Param("gender") String gender) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
         if (gender.equals("male")) {
-            driverLicenseTemplate.setGender(genderService.getGenderById(GenderId.MALE));
+            driverLicense.setGender(Gender.MALE);
         } else {
-            driverLicenseTemplate.setGender(genderService.getGenderById(GenderId.FEMALE));
+            driverLicense.setGender(Gender.FEMALE);
         }
-        driverLicenseTemplate.setUser(user);
-        driverLicenseTemplate.setUid("AB" + Math.abs(ThreadLocalRandom.current().nextInt()));
-        driverLicenseTemplateService.save(driverLicenseTemplate);
-        userService.findUserById(user.getId());
-        user.setUnfinishedTemplateId(driverLicenseTemplate.getId());
-        userService.save(user);
+
+        driverLicense.setUid("AB" + Math.abs(ThreadLocalRandom.current().nextInt()));
+        driverLicenseService.save(driverLicense);
         sender.send(SenderAction.typingOn(user));
         sender.send(QuickReplies.builder()
                         .user(user)
-                        .text("Thank you, can i use your name from Facebook to fill template?")
-                        .postback("Yes", ButtonPostback.FACEBOOK_NAME + "?use=true")
-                        .postback("No", ButtonPostback.FACEBOOK_NAME + "?use=false")
+                        .text("Thank you, can i use your data from Facebook to fill template?")
+                        .postback("Yes", ButtonPostback.FACEBOOK_DATA + "?use=true")
+                        .postback("No", ButtonPostback.FACEBOOK_DATA + "?use=false")
                         .build(),
                 2000);
     }
 
-    @Postback(ButtonPostback.FACEBOOK_NAME)
+    @Postback(ButtonPostback.FACEBOOK_DATA)
     public void handleFacebookName(User user, @Param("use") String use) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
         if (Boolean.parseBoolean(use)) {
-            driverLicenseTemplate.setFirstName(messenger.getProfile(user.getChatId()).getFirstName());
-            driverLicenseTemplate.setLastName(messenger.getProfile(user.getChatId()).getLastName());
-            driverLicenseTemplate.setImgUrl(messenger.getProfile(user.getChatId()).getProfilePicture());
-            driverLicenseTemplateService.save(driverLicenseTemplate);
+            driverLicense.setFirstName(messenger.getProfile(user.getChatId()).getFirstName());
+            driverLicense.setLastName(messenger.getProfile(user.getChatId()).getLastName());
+            driverLicense.setImgUrl(messenger.getProfile(user.getChatId()).getProfilePicture());
+            driverLicenseService.save(driverLicense);
             sender.send(SenderAction.typingOn(user));
             sender.send(user, "Please, enter your date of birth in dd/mm/yyyy format, for example: 04/05/1988", 2000);
             userService.changeState(user, ChatState.ENTER_DATE_OF_BIRTH);
@@ -134,11 +137,11 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_NAME)
     public void handleEnterName(User user, @Text String name) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
         if (!name.isEmpty()) {
-            driverLicenseTemplate.setFirstName(name);
-            driverLicenseTemplateService.save(driverLicenseTemplate);
+            driverLicense.setFirstName(name);
+            driverLicenseService.save(driverLicense);
             sender.send(SenderAction.typingOn(user));
             sender.send(user, "And now enter your surname", 1000);
             userService.changeState(user, ChatState.ENTER_SURNAME);
@@ -151,14 +154,14 @@ public class MainHandler {
 
     @Text(states = ChatState.ENTER_SURNAME)
     public void handleEnterSurname(User user, @Text String surname) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
         if (!surname.isEmpty()) {
-            driverLicenseTemplate.setLastName(surname);
-            driverLicenseTemplateService.save(driverLicenseTemplate);
+            driverLicense.setLastName(surname);
+            driverLicenseService.save(driverLicense);
             sender.send(SenderAction.typingOn(user));
-            sender.send(user, "Please, enter your date of birth in dd/mm/yyyy format, for example: 04/05/1988", 2000);
-            userService.changeState(user, ChatState.ENTER_DATE_OF_BIRTH);
+            sender.send(user, "Please, paste your photo url", 2000);
+            userService.changeState(user, ChatState.ENTER_PHOTO_URL);
         } else {
             sender.send(SenderAction.typingOn(user));
             sender.send(user, "Please, enter your surname", 1000);
@@ -166,9 +169,26 @@ public class MainHandler {
         }
     }
 
+    @Text(states = ChatState.ENTER_PHOTO_URL)
+    public void handleEnterImgUrl(User user, @Text String imgUrl) {
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
+
+        if (!imgUrl.isEmpty()) {
+            driverLicense.setImgUrl(imgUrl);
+            driverLicenseService.save(driverLicense);
+            sender.send(SenderAction.typingOn(user));
+            sender.send(user, "Please, enter your date of birth in dd/mm/yyyy format, for example: 04/05/1988", 2000);
+            userService.changeState(user, ChatState.ENTER_DATE_OF_BIRTH);
+        } else {
+            sender.send(SenderAction.typingOn(user));
+            sender.send(user, "Please, paste your photo url", 1000);
+            userService.changeState(user, ChatState.ENTER_SURNAME);
+        }
+    }
+
     @Text(states = ChatState.ENTER_DATE_OF_BIRTH)
     public void handleEnterDateOfBirth(User user, @Text String date) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
         Predicate<String> dateTester = d -> {
             Pattern pattern = Pattern.compile("^(3[01]|[12][0-9]|0[1-9])/(1[0-2]|0[1-9])/[0-9]{4}$");
@@ -177,11 +197,19 @@ public class MainHandler {
         };
 
         if (dateTester.test(date)) {
-            driverLicenseTemplate.setDateOfBirth(date);
-            driverLicenseTemplateService.save(driverLicenseTemplate);
+            driverLicense.setDateOfBirth(date);
+            driverLicenseService.save(driverLicense);
             sender.send(SenderAction.typingOn(user));
-            sender.send(user, "Cool, now i would like to know all your driver categories, so, please, enter them", 2000);
-            userService.changeState(user, ChatState.ENTER_ALL_CATEGORY);
+            sender.send(QuickReplies.builder()
+                    .user(user)
+                    .text("Cool, now i would like to know your driver category, so, please, select it")
+                    .postback("A1", ButtonPostback.DRIVER_CATEGORY + "?category=A1")
+                    .postback("A", ButtonPostback.DRIVER_CATEGORY + "?category=A")
+                    .postback("B1", ButtonPostback.DRIVER_CATEGORY + "?category=B1")
+                    .postback("B", ButtonPostback.DRIVER_CATEGORY + "?category=B")
+                    .postback("C", ButtonPostback.DRIVER_CATEGORY + "?category=C")
+                    .postback("D", ButtonPostback.DRIVER_CATEGORY + "?category=D")
+                    .build());
         } else {
             sender.send(SenderAction.typingOn(user));
             sender.send(user, "You entered date with wrong format, please try again", 2000);
@@ -189,32 +217,19 @@ public class MainHandler {
         }
     }
 
-    @Text(states = ChatState.ENTER_ALL_CATEGORY)
-    public void handleEnterAllCategory(User user, @Text String listOfCategory) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+    @Postback(value = ButtonPostback.DRIVER_CATEGORY)
+    public void handleEnterAllCategory(User user, @Param("category") String category) {
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
-        if (!listOfCategory.isEmpty()) {
-            Set<String> allCategories = new HashSet<>(Arrays.asList(listOfCategory.split("[,\\s]")));
-            Set<DriverCategory> allDriverCategories = driverCategoryService.findAll().stream()
-                    .filter(category -> allCategories.stream()
-                            .map(String::toUpperCase)
-                            .collect(Collectors.toSet())
-                            .contains(category.getCategory()))
-                    .collect(Collectors.toSet());
-
-            driverLicenseTemplate.setDriverCategoryList(allDriverCategories);
-            driverLicenseTemplateService.save(driverLicenseTemplate);
-            sender.send(user, "Cool, now i would like to know your Email, so, please, enter it", 2000);
-            userService.changeState(user, ChatState.ENTER_EMAIL);
-        } else {
-            sender.send(user, "You must have at least one driver category to create a template", 2000);
-            userService.changeState(user, ChatState.ENTER_ALL_CATEGORY);
-        }
+        driverLicense.setDriverCategory(DriverCategory.valueOf(category).toString());
+        driverLicenseService.save(driverLicense);
+        sender.send(user, "Cool, now i would like to know your Email, so, please, enter it", 1000);
+        userService.changeState(user, ChatState.ENTER_EMAIL);
     }
 
     @Text(states = ChatState.ENTER_EMAIL)
     public void handleUseFacebookEmail(User user, @Text String email) {
-        driverLicenseTemplate = driverLicenseTemplateService.getTemplateById(user.getUnfinishedTemplateId());
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
 
         Predicate<String> emailTester = d -> {
             Pattern pattern = Pattern.compile("^[a-zA-Z0-9_!#$%&’*+\\=?`{|}~^.-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,6}$");
@@ -223,15 +238,15 @@ public class MainHandler {
         };
 
         if (emailTester.test(email)) {
-            driverLicenseTemplate.setEmail(email);
-            driverLicenseTemplate.setTimestamp(new Timestamp(new Date().getTime()));
-            driverLicenseTemplate.setFinished(true);
-            driverLicenseTemplateService.save(driverLicenseTemplate);
+            driverLicense.setEmail(email);
+            driverLicense.setTimestamp(new Timestamp(new Date().getTime()));
+            driverLicense.setFinished(true);
+            driverLicenseService.save(driverLicense);
             sender.send(SenderAction.typingOn(user));
             sender.send(QuickReplies.builder()
                             .user(user)
-                            .text("Thank you, now you can see your driver license template")
-                            .postback("See Templates", ButtonPostback.SEE_TEMPLATE)
+                            .text("Thank you, now you can see your driver license")
+                            .postback("See driver license", ButtonPostback.SEE_DRIVER_LICENSE)
                             .build(),
                     1000);
         } else {
@@ -241,17 +256,38 @@ public class MainHandler {
         }
     }
 
-    @Postback(value = ButtonPostback.SEE_TEMPLATE)
-    public void handleSeeTemplate(User user) {
+    @Postback(value = ButtonPostback.SEE_DRIVER_LICENSE)
+    public void handleSeeDriverLicense(User user) {
+        driverLicense = driverLicenseService.getDriverLicenseById(user.getUnfinishedDriverLicenseId());
+
         userService.changeState(user, ChatState.WELCOME);
-        sender.send(user, "http://localhost:8080/template/"+user.getId());
+        sender.send(GenericTemplate.builder()
+                .user(user)
+                .addElement(TemplateElement.builder()
+                        .imageUrl(driverLicense.getImgUrl())
+                        .title("There you can find your licenses")
+                        .button(new WebButton("See new license", "http://localhost:8080/driver-license/" + driverLicense.getId()))
+                        .button(new PostbackButton("See all licenses", ButtonPostback.SEE_ALL_DRIVER_LICENSES))
+                        .build())
+                .build());
     }
 
-    @Read
-    public void handleRead(User user) {
-    }
+    @Postback(value = ButtonPostback.SEE_ALL_DRIVER_LICENSES)
+    public void handleSeeAllDriverLicenses(User user) {
+        List<DriverLicense> driverLicenseList = driverLicenseService.getAllDriverLicensesByUserId(user.getId());
 
-    @Echo
-    public void handleEcho(User user) {
+        GenericTemplate.Builder builder = GenericTemplate.builder();
+        for (DriverLicense license : driverLicenseList) {
+            builder.addElement(TemplateElement.builder()
+                    .imageUrl(license.getImgUrl())
+                    .title(license.getUid())
+                    .button(new WebButton("See license", "http://localhost:8080/driver-license/" + license.getId()))
+                    .build()
+            );
+        }
+        sender.send(builder
+                .user(user)
+                .build());
+        userService.changeState(user, ChatState.WELCOME);
     }
 }

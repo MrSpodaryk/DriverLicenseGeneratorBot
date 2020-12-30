@@ -1,25 +1,21 @@
 package com.botscrew.controller;
 
-import com.botscrew.service.DriverLicenseTemplateService;
-import com.botscrew.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.botscrew.service.DriverLicenseService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
+@RequiredArgsConstructor
 public class MainController {
 
-    @Autowired
-    UserService userService;
-    @Autowired
-    DriverLicenseTemplateService driverLicenseTemplateService;
+    private final DriverLicenseService driverLicenseService;
 
-    @GetMapping("template/{id}")
+    @GetMapping("driver-license/{id}")
     public String getTemplate(@PathVariable Integer id, Model model) {
-        model.addAttribute("license", driverLicenseTemplateService.getTemplateById(
-                userService.findUserById(id).getUnfinishedTemplateId()));
+        model.addAttribute("license", driverLicenseService.getDriverLicenseById(id));
         return "template";
     }
 }

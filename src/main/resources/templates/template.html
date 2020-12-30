@@ -3,43 +3,42 @@
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Driver License Template</title>
+    <title>Driver License</title>
 </head>
 <body>
 
 <p>
-    <img style="width: 300px; height: 330px" th:src="@{${license.getImgUrl()}}">
+    <img style="width: 300px; height: 330px" th:src="@{${license.imgUrl}}">
 </p>
 
 <p>
     First name:
-    <th:block th:text="${license.getFirstName()}"/>
+    <th:block th:text="${license.firstName}"/>
 </p>
 
 <p>
     Last name:
-    <th:block th:text="${license.getLastName()}"/>
+    <th:block th:text="${license.lastName}"/>
 </p>
 
 <p>
     Uid:
-    <th:block th:text="${license.getUid()}"/>
+    <th:block th:text="${license.Uid}"/>
 </p>
 
 <p>
     DOB:
-    <th:block th:text="${license.getDateOfBirth()}"/>
+    <th:block th:text="${license.dateOfBirth}"/>
 </p>
 
 <p>
     SEX:
-    <th:block th:text="${license.getGender().gender}"/>
+    <th:block th:text="${license.gender}"/>
 </p>
 
 <p>
     CLASS:
-    <th:block th:each="category : ${license.getDriverCategoryList()}" th:text="${category.category} "/>
-    </th:block>
+    <th:block th:text="${license.driverCategory} "/>
 </p>
 
 </body>
