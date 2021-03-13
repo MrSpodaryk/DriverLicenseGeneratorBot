@@ -1,6 +1,6 @@
 package com.botscrew.service;
 
-import com.botscrew.models.DriverLicense;
+import com.botscrew.entity.DriverLicense;
 
 import java.util.List;
 

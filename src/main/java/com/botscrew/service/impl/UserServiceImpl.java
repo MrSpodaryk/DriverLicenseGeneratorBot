@@ -1,12 +1,12 @@
 package com.botscrew.service.impl;
 
 import com.botscrew.constant.ChatState;
-import com.botscrew.dao.UserDao;
+import com.botscrew.dao.UserDAO;
 import com.botscrew.messengercdk.model.MessengerUser;
 import com.botscrew.messengercdk.model.incomming.Profile;
 import com.botscrew.messengercdk.service.Messenger;
 import com.botscrew.messengercdk.service.UserProvider;
-import com.botscrew.models.User;
+import com.botscrew.entity.User;
 import com.botscrew.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserProvider {
 
-    private final UserDao userDao;
+    private final UserDAO userDao;
     private final Messenger messenger;
 
     @Override

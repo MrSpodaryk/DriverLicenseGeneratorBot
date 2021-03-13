@@ -1,7 +1,7 @@
 package com.botscrew.service.impl;
 
-import com.botscrew.dao.DriverLicenseDao;
-import com.botscrew.models.DriverLicense;
+import com.botscrew.dao.DriverLicenseDAO;
+import com.botscrew.entity.DriverLicense;
 import com.botscrew.service.DriverLicenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DriverLicenseServiceImpl implements DriverLicenseService {
 
-    private final DriverLicenseDao driverLicenseDao;
+    private final DriverLicenseDAO driverLicenseDao;
 
     @Override
     public void save(DriverLicense license) {

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 @RequiredArgsConstructor
-public class MainController {
+public class LicenceController {
 
     private final DriverLicenseService driverLicenseService;
 

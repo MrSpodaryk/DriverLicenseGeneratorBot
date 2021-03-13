@@ -1,4 +1,4 @@
-package com.botscrew.models;
+package com.botscrew.entity;
 
 
 import com.botscrew.messengercdk.model.MessengerUser;

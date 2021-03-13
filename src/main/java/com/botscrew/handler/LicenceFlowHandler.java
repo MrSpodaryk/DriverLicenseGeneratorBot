@@ -14,10 +14,10 @@ import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
 import com.botscrew.messengercdk.model.outgoing.element.button.WebButton;
 import com.botscrew.messengercdk.service.Messenger;
 import com.botscrew.messengercdk.service.Sender;
-import com.botscrew.models.DriverCategory;
-import com.botscrew.models.DriverLicense;
-import com.botscrew.models.Gender;
-import com.botscrew.models.User;
+import com.botscrew.entity.DriverCategory;
+import com.botscrew.entity.DriverLicense;
+import com.botscrew.entity.Gender;
+import com.botscrew.entity.User;
 import com.botscrew.service.DriverLicenseService;
 import com.botscrew.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 @ChatEventsProcessor
 @RequiredArgsConstructor
-public class MainHandler {
+public class LicenceFlowHandler {
 
     private final Sender sender;
     private final Messenger messenger;

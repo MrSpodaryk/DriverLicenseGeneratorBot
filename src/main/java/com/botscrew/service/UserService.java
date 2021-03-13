@@ -1,7 +1,7 @@
 package com.botscrew.service;
 
 
-import com.botscrew.models.User;
+import com.botscrew.entity.User;
 
 public interface UserService {
     User createIfNotExist(Long chatId);
